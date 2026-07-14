@@ -12,17 +12,19 @@ namespace TrelloClone.Web.Controllers
         private readonly IColumnService _columnService;
         private readonly ICardService _cardService;
         private readonly IHubContext<BoardHub> _hubContext;
-
+        private readonly IAuditLogService _auditLogService;
 
         public BoardController(IProjectService projectService, 
                                IColumnService columnService, 
                                ICardService cardService,
-                               IHubContext<BoardHub> hubContext)
+                               IHubContext<BoardHub> hubContext,
+                               IAuditLogService auditLogService)
         {
             _projectService = projectService;
             _columnService = columnService;
             _cardService = cardService;
             _hubContext = hubContext;
+            _auditLogService = auditLogService;
         }
 
         public async Task<IActionResult> Index()
@@ -44,6 +46,8 @@ namespace TrelloClone.Web.Controllers
             }
             project.Columns = columns.ToList();
 
+            ViewBag.RecentLogs = await _auditLogService.GetRecentLogsAsync(10);
+
             return View(project);
         }
 
@@ -62,6 +66,8 @@ namespace TrelloClone.Web.Controllers
             {
                 card.ColumnId = request.NewColumnId;
                 await _cardService.UpdateCardAsync(card);
+
+                await _auditLogService.LogActionAsync("Kart Taşındı", $"Bir görev yeni bir sütuna taşındı.", "Sistem Kullanıcısı", request.CardId);
                 
                 // SignalR Bildirimi
                 var column = await _columnService.GetColumnByIdAsync(request.NewColumnId);
@@ -121,6 +127,7 @@ namespace TrelloClone.Web.Controllers
                 card.Order = existingCards.Count() + 1;
 
                 await _cardService.CreateCardAsync(card);
+                await _auditLogService.LogActionAsync("Kart Oluşturuldu", $"'{card.Title}' adlı kart eklendi.", "Sistem Kullanıcısı", card.Id);
 
                 var column = await _columnService.GetColumnByIdAsync(card.ColumnId);
                 return RedirectToAction("Detail", new { id = column.ProjectId });

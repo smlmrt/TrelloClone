@@ -10,8 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddSignalR();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddDbContext<TrelloCloneDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));

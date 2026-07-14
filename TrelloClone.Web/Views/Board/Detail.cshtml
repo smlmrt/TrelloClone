@@ -92,5 +92,33 @@
             })
             .catch(error => console.error('Hata:', error));
         }
+
+        // Model.Id (Proje ID) değerini C#'tan alıp JS değişkenine atıyoruz
+        var projectId = "@Model.Id"; 
+
+        var connection = new signalR.HubConnectionBuilder().withUrl("/boardHub").build();
+
+        // Sunucudan (C# Controller'dan) "ReceiveCardMove" mesajı geldiğinde tetiklenecek fonksiyon
+        connection.on("ReceiveCardMove", function (cardId, newColumnId) {
+            
+            // Taşınan kartın HTML elementini bul
+            var cardElement = document.getElementById("card-" + cardId);
+            
+            // Kartın taşınacağı yeni sütunun gövdesini (body) bul
+            var targetColumn = document.getElementById("column-" + newColumnId);
+
+            // Eğer kart ve hedef sütun ekranda varsa (DOM'da bulunuyorsa), kartı yeni yerine ekle
+            if (cardElement && targetColumn) {
+                targetColumn.appendChild(cardElement);
+            }
+        });
+
+        // Bağlantıyı başlat ve odaya (Projeye) katıl
+        connection.start().then(function () {
+            console.log("SignalR Bağlandı. Proje ID odasına giriliyor: " + projectId);
+            connection.invoke("JoinProjectGroup", projectId);
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
     </script>
 }

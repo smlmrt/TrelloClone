@@ -4,11 +4,14 @@ using TrelloClone.Core.Interfaces;
 using TrelloClone.DataAccess.Repositories;
 using TrelloClone.Business.Interfaces;
 using TrelloClone.Business.Services;
+using TrelloClone.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<TrelloCloneDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -38,5 +41,7 @@ app.MapStaticAssets();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Board}/{action=Index}/{id?}");
+
+app.MapHub<BoardHub>("/boardHub");
 
 app.Run();

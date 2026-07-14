@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TrelloClone.Business.Interfaces;
 using TrelloClone.Core.Entities;
+using Microsoft.AspNetCore.SignalR;
+using TrelloClone.Web.Hubs;
 
 namespace TrelloClone.Web.Controllers
 {
@@ -9,12 +11,18 @@ namespace TrelloClone.Web.Controllers
         private readonly IProjectService _projectService;
         private readonly IColumnService _columnService;
         private readonly ICardService _cardService;
+        private readonly IHubContext<BoardHub> _hubContext;
 
-        public BoardController(IProjectService projectService, IColumnService columnService, ICardService cardService)
+
+        public BoardController(IProjectService projectService, 
+                               IColumnService columnService, 
+                               ICardService cardService,
+                               IHubContext<BoardHub> hubContext)
         {
             _projectService = projectService;
             _columnService = columnService;
             _cardService = cardService;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> Index()
@@ -55,9 +63,19 @@ namespace TrelloClone.Web.Controllers
                 card.ColumnId = request.NewColumnId;
                 await _cardService.UpdateCardAsync(card);
                 
-                return Ok();
+                // SignalR Bildirimi
+                var column = await _columnService.GetColumnByIdAsync(request.NewColumnId);
+                
+                // CS8602 Uyarısını çözen Null Kontrolü:
+                if (column != null) 
+                {
+                    var projectId = column.ProjectId.ToString();
+                    await _hubContext.Clients.Group(projectId)
+                        .SendAsync("ReceiveCardMove", request.CardId, request.NewColumnId);
+                }
+                
+                return Ok(); 
             }
-            
             return BadRequest();
         }
 

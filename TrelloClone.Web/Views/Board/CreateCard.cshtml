@@ -1,0 +1,39 @@
+@model TrelloClone.Core.Entities.Card
+
+@{
+    ViewData["Title"] = "Yeni Görev Ekle";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">Yeni Görev (Kart) Ekle</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateCard" method="post">
+                        
+                        <input type="hidden" name="ColumnId" value="@ViewBag.ColumnId" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Görev Başlığı</label>
+                            <input type="text" class="form-control" id="Title" name="Title" placeholder="Örn: Veritabanı Optimizasyonu" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Açıklama</label>
+                            <textarea class="form-control" id="Description" name="Description" rows="3" placeholder="Görevin detaylarını buraya yazın..." required></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Kartı Kaydet ve Panoya Dön</button>
+                            <a href="javascript:history.back()" class="btn btn-light">İptal Et</a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
